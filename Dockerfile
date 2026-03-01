@@ -7,9 +7,10 @@
 # Build:
 #   docker buildx build --build-context deploy=. -f Dockerfile -t itsddvn/goclaw ../goclaw
 
-# ── Stage 1: Build Go binary ──
-FROM golang:1.25-bookworm AS go-builder
+# ── Stage 1: Build Go binary (cross-compile on build platform) ──
+FROM --platform=$BUILDPLATFORM golang:1.25-bookworm AS go-builder
 
+ARG TARGETARCH
 WORKDIR /src
 
 COPY go.mod go.sum ./
@@ -19,12 +20,12 @@ COPY . .
 
 ARG VERSION=dev
 
-RUN CGO_ENABLED=0 GOOS=linux \
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=$TARGETARCH \
     go build -ldflags="-s -w -X github.com/nextlevelbuilder/goclaw/cmd.Version=${VERSION}" \
     -o /out/goclaw .
 
-# ── Stage 2: Build React SPA ──
-FROM node:22-alpine AS web-builder
+# ── Stage 2: Build React SPA (platform-independent static output) ──
+FROM --platform=$BUILDPLATFORM node:22-alpine AS web-builder
 
 RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 

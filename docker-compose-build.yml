@@ -11,6 +11,7 @@
 
 services:
   goclaw:
+    platform: linux/amd64
     build:
       context: ../goclaw
       dockerfile: ${PWD}/Dockerfile

@@ -9,6 +9,7 @@
 services:
   goclaw:
     image: itsddvn/goclaw:latest
+    platform: linux/amd64
     ports:
       - "${GOCLAW_UI_PORT:-3000}:8080"
     volumes:
