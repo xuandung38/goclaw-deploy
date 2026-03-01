@@ -25,6 +25,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    networks:
+      - dokploy-network
     security_opt:
       - no-new-privileges:true
     cap_drop:
@@ -49,12 +51,18 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-goclaw}
     volumes:
       - pgdata:/var/lib/postgresql
+    networks:
+      - dokploy-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-goclaw}"]
       interval: 5s
       timeout: 5s
       retries: 10
     restart: unless-stopped
+
+networks:
+  dokploy-network:
+    external: true
 
 volumes:
   goclaw-data:
