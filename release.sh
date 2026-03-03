@@ -220,13 +220,28 @@ do_sync() {
   fi
 
   # ── CLEAN ─────────────────────────────────────────────────────────────
-  header "CLEAN — Remove old containers & volumes"
+  header "CLEAN — Prepare environment"
 
-  info "Stopping and removing project containers..."
-  docker compose -f "$DEPLOY_DIR/$COMPOSE_BUILD" down -v --remove-orphans 2>/dev/null || true
-  docker compose -f "$DEPLOY_DIR/$COMPOSE_PROD" down -v --remove-orphans 2>/dev/null || true
+  echo ""
+  echo -e "  ${CYAN}1)${NC} Rebuild code only — keep DB & volumes intact"
+  echo -e "  ${CYAN}2)${NC} Full reset — wipe DB, volumes & rebuild from scratch"
+  echo ""
+  read -r -p "$(echo -e "${YELLOW}? ${NC}Choose [1/2] (default: 2): ")" clean_choice
 
-  success "Cleaned"
+  case "${clean_choice:-2}" in
+    1)
+      info "Keeping existing data, stopping containers only..."
+      docker compose -f "$DEPLOY_DIR/$COMPOSE_BUILD" down --remove-orphans 2>/dev/null || true
+      docker compose -f "$DEPLOY_DIR/$COMPOSE_PROD" down --remove-orphans 2>/dev/null || true
+      success "Containers stopped (data preserved)"
+      ;;
+    *)
+      info "Stopping and removing containers + volumes..."
+      docker compose -f "$DEPLOY_DIR/$COMPOSE_BUILD" down -v --remove-orphans 2>/dev/null || true
+      docker compose -f "$DEPLOY_DIR/$COMPOSE_PROD" down -v --remove-orphans 2>/dev/null || true
+      success "Cleaned (fresh start)"
+      ;;
+  esac
 
   # ── TEST BUILD ────────────────────────────────────────────────────────
   header "TEST — Build from source & health check"
