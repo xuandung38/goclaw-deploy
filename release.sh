@@ -144,13 +144,22 @@ usage() {
 do_sync() {
   header "SYNC — Fetch & merge upstream"
 
-  # ── Sync upstream/main → fork/main ──────────────────────────────────
-  info "Checking out main..."
-  git -C "$CORE_DIR" checkout main
-
-  info "Fetching upstream..."
+  # ── Pull latest from origin & upstream ────────────────────────────────
+  info "Fetching origin and upstream..."
+  git -C "$CORE_DIR" fetch origin
   git -C "$CORE_DIR" fetch upstream
 
+  info "Pulling latest develop from origin..."
+  git -C "$CORE_DIR" checkout develop
+  git -C "$CORE_DIR" pull origin develop --no-edit || true
+
+  info "Pulling latest main from origin..."
+  git -C "$CORE_DIR" checkout main
+  git -C "$CORE_DIR" pull origin main --no-edit || true
+
+  success "Pulled latest from origin"
+
+  # ── Sync upstream/main → fork/main ──────────────────────────────────
   info "Merging upstream/main into main..."
   if ! git -C "$CORE_DIR" merge upstream/main --no-edit; then
     error "Merge conflict on main in $CORE_DIR"
@@ -166,7 +175,7 @@ do_sync() {
 
   success "main synced with upstream"
 
-  # ── Merge fork/main → fork/develop ────────────────────────────────
+  # ── Merge fork/main → fork/develop ──────────────────────────────────
   info "Checking out develop..."
   git -C "$CORE_DIR" checkout develop
 
@@ -184,6 +193,17 @@ do_sync() {
   fi
 
   success "develop synced with main"
+
+  # ── Push fork main & develop to origin ──────────────────────────────
+  header "PUSH — Push main & develop to origin"
+
+  info "Pushing main to origin..."
+  git -C "$CORE_DIR" push origin main
+
+  info "Pushing develop to origin..."
+  git -C "$CORE_DIR" push origin develop
+
+  success "main & develop pushed to origin"
 
   # ── AUTO-REVIEW ──────────────────────────────────────────────────────
   header "REVIEW — Auto-sync deploy configs from upstream"
