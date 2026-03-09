@@ -18,12 +18,16 @@ case "${1:-serve}" in
                 echo "Upgrade warning (may already be up-to-date)"
         fi
 
+        # Prepare nginx writable dirs under /tmp (read-only filesystem)
+        mkdir -p /tmp/nginx/client_body /tmp/nginx/proxy /tmp/nginx/fastcgi \
+                 /tmp/nginx/uwsgi /tmp/nginx/scgi /tmp/nginx/logs /tmp/nginx/run
+
         # Start goclaw in background
         /app/goclaw &
         GOCLAW_PID=$!
 
-        # Start nginx in background
-        nginx -g 'daemon off;' &
+        # Start nginx (writable paths configured in nginx-main.conf → /tmp/nginx/)
+        nginx -e /tmp/nginx/error.log -g 'daemon off;' &
         NGINX_PID=$!
 
         trap shutdown SIGTERM SIGINT

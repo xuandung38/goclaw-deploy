@@ -55,15 +55,14 @@ COPY --from=go-builder /src/migrations/ /app/migrations/
 COPY --from=web-builder /app/dist /usr/share/nginx/html
 
 # Copy deploy-specific config files (from named build context)
+COPY --from=deploy nginx-main.conf /etc/nginx/nginx.conf
 COPY --from=deploy nginx.conf /etc/nginx/http.d/default.conf
 COPY --from=deploy entrypoint.sh /app/entrypoint.sh
 RUN chmod +x /app/entrypoint.sh
 
 # Create data directories and set permissions
 RUN mkdir -p /app/workspace /app/data /app/sessions /app/skills /app/.goclaw \
-    && mkdir -p /run/nginx /var/lib/nginx/logs /var/log/nginx \
-    && chown -R goclaw:goclaw /app /run/nginx /usr/share/nginx/html \
-        /var/lib/nginx /var/log/nginx
+    && chown -R goclaw:goclaw /app /usr/share/nginx/html
 
 # Default environment
 ENV GOCLAW_CONFIG=/app/config.json \
