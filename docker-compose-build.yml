@@ -17,6 +17,7 @@ services:
       dockerfile: ${PWD}/Dockerfile
       additional_contexts:
         deploy: .
+        web: ../goclaw-core/ui/web
       args:
         VERSION: ${GOCLAW_VERSION:-dev}
     ports:

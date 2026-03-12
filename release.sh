@@ -367,6 +367,7 @@ do_publish() {
   if ! docker buildx build \
     --platform linux/amd64 \
     --build-context deploy="$DEPLOY_DIR" \
+    --build-context web="$CORE_DIR/ui/web" \
     -f "$DEPLOY_DIR/Dockerfile" \
     --build-arg VERSION="$VERSION" \
     -t "$IMAGE:$VERSION" \

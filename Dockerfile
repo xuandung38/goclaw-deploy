@@ -31,10 +31,10 @@ RUN corepack enable && corepack prepare pnpm@10.28.2 --activate
 
 WORKDIR /app
 
-COPY ui/web/package.json ui/web/pnpm-lock.yaml ./
+COPY --from=web package.json pnpm-lock.yaml ./
 RUN pnpm install --frozen-lockfile
 
-COPY ui/web/ .
+COPY --from=web . .
 RUN pnpm build
 
 # ── Stage 3: Runtime (Alpine + nginx) ──
@@ -47,9 +47,10 @@ RUN addgroup -S goclaw && adduser -S -G goclaw goclaw
 
 WORKDIR /app
 
-# Copy Go binary and migrations
+# Copy Go binary, migrations, and bundled skills
 COPY --from=go-builder /out/goclaw /app/goclaw
 COPY --from=go-builder /src/migrations/ /app/migrations/
+COPY --from=go-builder /src/skills/ /app/bundled-skills/
 
 # Copy React SPA to nginx html directory
 COPY --from=web-builder /app/dist /usr/share/nginx/html
